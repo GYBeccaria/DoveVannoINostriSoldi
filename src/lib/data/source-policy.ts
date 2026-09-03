@@ -12,6 +12,7 @@ export type SourceId =
   | "siope"
   | "istat"
   | "istat-casellario-pensioni"
+  | "consip"
   | "opencoesione"
   | "italiadomani"
   | "opencivitas"
@@ -234,6 +235,21 @@ export const SOURCE_POLICIES: Readonly<Record<SourceId, SourcePolicy>> = {
     timeoutMs: 20_000,
     maxRetries: 1,
     tags: ["source:istat-casellario-pensioni", "domain:social-benefits"],
+  },
+  consip: {
+    id: "consip",
+    label: "Consip · acquisti centralizzati",
+    owner: "Consip S.p.A. (società del MEF)",
+    sourceUrl: "https://dati.consip.it/",
+    cadence: "annuale",
+    cadenceNote:
+      "Il portale open data Consip pubblica dump annuali per package; lo snapshot resta bloccato sui file verificati (hash e byte) e viene aggiornato solo dopo nuova acquisizione e riconciliazione.",
+    discoveryRevalidateSeconds: DAY,
+    dataRevalidateSeconds: DAY,
+    staleAfterSeconds: 540 * DAY,
+    timeoutMs: 20_000,
+    maxRetries: 1,
+    tags: ["source:consip", "domain:public-procurement"],
   },
   opencoesione: {
     id: "opencoesione",

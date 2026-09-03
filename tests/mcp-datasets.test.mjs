@@ -356,3 +356,30 @@ test("ANAC snapshot rejects unavailable years instead of returning stale data", 
     /disponibile solo per il 2025/,
   );
 });
+
+test("il dataset MCP consip_ordini dichiara fonte, filtri e caveat sui limiti", () => {
+  const consip = datasetCatalog.find((dataset) => dataset.id === "consip_ordini");
+  assert.deepEqual(consip.sourceIds, ["consip"]);
+  assert.deepEqual(consip.filters, ["year", "channel"]);
+  assert.match(consip.caveat, /limiti inferiori/i);
+  assert.match(consip.caveat, /ordinato non è pagato/i);
+  assert.equal(consip.freshness, "snapshot");
+});
+
+test("la proiezione MCP consip_ordini filtra per anno e canale e porta i caveat", async () => {
+  const result = await queryPublicDataset({ dataset: "consip_ordini", year: 2025, channel: "mepa" });
+  assert.equal(result.dataset, "consip_ordini");
+  assert.equal(result.totals.length, 1);
+  assert.equal(result.totals[0].year, 2025);
+  assert.equal(result.totals[0].channel, "mepa");
+  assert.equal(result.byRegion.every((row) => row.channel === "mepa"), true);
+  assert.equal(result.caveats.length > 0, true);
+  assert.equal(result.source.licenseId, "CC-BY-4.0");
+});
+
+test("la proiezione MCP consip_ordini rifiuta filtri non dichiarati", async () => {
+  await assert.rejects(
+    () => queryPublicDataset({ dataset: "consip_ordini", region: "Lazio" }),
+    /Filtri non supportati/,
+  );
+});

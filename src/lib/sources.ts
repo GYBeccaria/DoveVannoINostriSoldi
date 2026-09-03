@@ -111,6 +111,18 @@ export const publicSources: PublicSource[] = [
     joinKeys: ["dataflow ISTAT", "anno", "categoria"],
   },
   {
+    slug: "consip",
+    name: "Consip · open data acquisti",
+    owner: "Consip S.p.A. (società del MEF)",
+    area: "Acquisti centralizzati della PA",
+    cadence: "Annuale; file verificati aggiornati dalla fonte a marzo 2026",
+    coverage: "Italia, 2024–2026; ordini su Convenzioni e MEPA aggregati per regione e tipologia di amministrazione",
+    format: "CSV per package CKAN · snapshot JSON verificato",
+    url: "https://dati.consip.it/",
+    note: "Gli importi pubblicati sono limiti inferiori: la fonte sopprime i valori in molte celle e pubblica anche storni negativi. Ordinato Consip non è un pagamento e non copre gli acquisti fuori dal Programma.",
+    joinKeys: ["anno", "regione PA", "tipologia amministrazione"],
+  },
+  {
     slug: "openbdap",
     name: "OpenBDAP",
     owner: "Ragioneria Generale dello Stato",

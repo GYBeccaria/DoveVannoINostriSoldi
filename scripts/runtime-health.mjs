@@ -38,6 +38,7 @@ const EXPECTED_SOURCE_IDS = [
   "siope",
   "istat",
   "istat-casellario-pensioni",
+  "consip",
   "opencoesione",
   "italiadomani",
   "opencivitas",

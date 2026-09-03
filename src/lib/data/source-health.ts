@@ -22,6 +22,7 @@ import { anacCigSnapshot } from "@/lib/anac-cig-snapshot";
 import { inpsCivilInvaliditySnapshot } from "@/lib/inps-invalidity-snapshot";
 import { cptRegionalFiscalSnapshot } from "@/lib/cpt-regional-fiscal-snapshot";
 import { istatPensionsSnapshot } from "@/lib/istat-pensions-snapshot";
+import { consipOrdiniData, consipOrdiniMetadata } from "@/lib/consip-ordini-snapshot";
 import { MEF_IRPEF_SOURCE } from "@/lib/data/mef-irpef-source";
 import { PNRR_CHILDCARE_SOURCE } from "@/lib/data/pnrr-childcare-source";
 import { getSsnCceSourceHealth, type SsnCceSourceHealth } from "@/lib/ssn-cce-snapshot";
@@ -494,6 +495,18 @@ function snapshotManagedIstatCasellarioPensioni(): SourceHealth {
   };
 }
 
+function snapshotManagedConsip(): SourceHealth {
+  const artifact = consipOrdiniMetadata.integrity.dataArtifact;
+  return {
+    ...baseHealth("consip"),
+    reachability: "not-probed",
+    freshness: freshnessFor("consip", consipOrdiniMetadata.suppression.observedAt),
+    latencyMs: null,
+    detail: `Snapshot Consip ordini verificato · Convenzioni e MEPA ${consipOrdiniData.period.from}-${consipOrdiniData.period.to} · importi come limiti inferiori con soppressioni dichiarate · ${artifact.bytes.toLocaleString("it-IT")} byte · check offline-source-lock-and-snapshot-contract`,
+    recordCount: consipOrdiniData.byRegion.length + consipOrdiniData.byAdministrationType.length,
+  };
+}
+
 function snapshotManagedMefParticipations(): SourceHealth {
   return {
     ...baseHealth("partecipazioni-pubbliche"),
@@ -632,6 +645,7 @@ export function getSnapshotManagedSourceHealth(): SourceHealth[] {
     snapshotManagedMefIrpef(),
     snapshotManagedIstat(),
     snapshotManagedIstatCasellarioPensioni(),
+    snapshotManagedConsip(),
     snapshotManagedOpenCoesione(),
     snapshotManagedPnrrChildcare(),
     snapshotManagedOpenCivitas(),
@@ -664,6 +678,7 @@ export const SOURCE_HEALTH_ADAPTERS = Object.freeze({
   siope: probeSiope,
   istat: snapshotManagedIstat,
   "istat-casellario-pensioni": snapshotManagedIstatCasellarioPensioni,
+  consip: snapshotManagedConsip,
   opencoesione: snapshotManagedOpenCoesione,
   italiadomani: snapshotManagedPnrrChildcare,
   opencivitas: snapshotManagedOpenCivitas,

@@ -26,7 +26,8 @@ import {
 const REVISION = "a".repeat(40);
 const SOURCE_IDS = [
   "ipa", "ipa-struttura", "openbdap", "anac", "inps", "cpt", "mef-irpef", "siope",
-  "istat", "istat-casellario-pensioni", "opencoesione", "italiadomani", "opencivitas", "consulenti", "camera", "senato",
+  "istat", "istat-casellario-pensioni",
+  "consip", "opencoesione", "italiadomani", "opencivitas", "consulenti", "camera", "senato",
   "pcm", "partecipazioni-pubbliche", "bancaditalia", "eurostat", "eurostat-hicp", "ameco",
   "governi-presidenza",
 ];

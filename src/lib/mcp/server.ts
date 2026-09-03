@@ -94,6 +94,9 @@ const querySchema = z.object({
   chamber: z.enum(["camera", "senato"])
     .describe("Ramo del Parlamento: camera oppure senato.")
     .optional(),
+  channel: z.enum(["convenzioni", "mepa"])
+    .describe("Canale di acquisto Consip: convenzioni oppure mepa.")
+    .optional(),
   period: z.string().max(20)
     .describe("Periodo dichiarato dal dataset, per esempio 2026-07-31 o 2026-Q2.")
     .optional(),

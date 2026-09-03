@@ -259,6 +259,10 @@ export async function queryPublicDataset(
         ? jsonSafe({ ...shared, dataset: query.dataset, pensionBenefits })
         : jsonSafe({ ...shared, dataset: query.dataset, pensioners });
     }
+    case "consip_ordini": {
+      const { queryConsipOrdini } = await import("@/lib/consip-ordini-snapshot");
+      return jsonSafe({ dataset: query.dataset, ...queryConsipOrdini({ year: query.year, channel: query.channel }) });
+    }
     case "cpt_finanza_regionale": {
       const { queryCptRegionalFiscal } = await import("@/lib/cpt-regional-fiscal-snapshot");
       return jsonSafe(queryCptRegionalFiscal({ year: query.year, region: query.region }));
