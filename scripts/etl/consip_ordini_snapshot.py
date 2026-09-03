@@ -270,9 +270,32 @@ def build_metadata(spec: dict[str, Any], data_bytes: bytes) -> dict[str, Any]:
             "licenseId": spec["source"]["licenseId"],
             "licenseNote": spec["source"]["licenseNote"],
             "packages": dict(spec["source"]["packages"]),
+            "acquisition": dict(spec["source"]["acquisition"]),
             "assets": {name: dict(asset) for name, asset in spec["source"]["assets"].items()},
         },
         "suppression": dict(spec["suppression"]),
+        # I TRE ASSI SEMANTICI OBBLIGATORI (docs/DATA_IMPORT_STANDARD.md): soldi, periodo,
+        # provenance — espliciti nel metadata dello snapshot, non deducibili dal lettore.
+        "semantics": {
+            "soldi": {
+                "unit": "centesimi di euro",
+                "nature": "ordinato (ordini di acquisto sottoscritti) — non è stanziamento, non è impegno, non è pagamento SIOPE",
+                "note": "Somme come limiti inferiori per soppressione delle celle; gli storni negativi concorrono col loro segno. Zero osservato, cella soppressa e riga di sola anagrafica restano distinti nei conteggi.",
+            },
+            "periodo": {
+                "referencePeriod": f"{spec['period']['from']}-{spec['period']['to']}",
+                "note": "Anno di riferimento dichiarato dalla fonte in ogni riga (Anno_Riferimento); il 2026 è parziale.",
+            },
+            "provenance": {
+                "holder": spec["source"]["owner"],
+                "canonicalUrls": [spec["source"]["landingUrl"]] + sorted(a["url"] for a in spec["source"]["assets"].values()),
+                "publicationDate": "2026-03-19",
+                "acquisitionDate": spec["source"]["acquisition"]["acquiredAt"],
+                "checkedAt": spec["source"]["acquisition"]["checkedAt"],
+                "license": spec["source"]["licenseId"],
+                "hashes": "SHA-256 per asset in source.assets; artefatto in integrity.dataArtifact",
+            },
+        },
         "integrity": {
             "algorithm": "sha256",
             "canonicalization": "UTF-8 JSON, chiavi ordinate, separatori compatti",

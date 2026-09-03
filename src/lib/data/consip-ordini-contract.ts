@@ -79,6 +79,7 @@ export const consipOrdiniMetadataSchema = z
         licenseId: z.literal("CC-BY-4.0"),
         licenseNote: z.string().min(1),
         packages: z.record(z.string(), z.string().min(1)),
+        acquisition: z.object({ acquiredAt: z.string().min(1), checkedAt: z.string().min(1), note: z.string().min(1) }).strict(),
         assets: z.record(
           z.string(),
           z
@@ -93,6 +94,25 @@ export const consipOrdiniMetadataSchema = z
       })
       .strict(),
     suppression: z.object({ note: z.string().min(1), observedAt: z.string().min(1) }).strict(),
+    // I tre assi semantici obbligatori dello standard di import (#264): se mancano, il
+    // bundle non è pubblicabile — la semantica fa parte del dato, non della pagina.
+    semantics: z
+      .object({
+        soldi: z.object({ unit: z.literal("centesimi di euro"), nature: z.string().min(1), note: z.string().min(1) }).strict(),
+        periodo: z.object({ referencePeriod: z.literal("2024-2026"), note: z.string().min(1) }).strict(),
+        provenance: z
+          .object({
+            holder: z.string().min(1),
+            canonicalUrls: z.array(z.string().refine((url) => url.startsWith("https://dati.consip.it"), "URL non ufficiale")).min(1),
+            publicationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            acquisitionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            checkedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+            license: z.literal("CC-BY-4.0"),
+            hashes: z.string().min(1),
+          })
+          .strict(),
+      })
+      .strict(),
     integrity: z
       .object({
         algorithm: z.literal("sha256"),

@@ -8,14 +8,47 @@
       "path": "src/data/generated/consip-ordini-2024-2026.data.json",
       "sha256": "7b6f81749552e4fd1bba7b9599a68b53a0366ed8ed1b7bc65478f7a3b83b084b"
     },
-    "sourceLockSha256": "6686b81471ed80c9d7e8250b5da4fa0ae32f06bd60210a9aac70ee98ae808f92"
+    "sourceLockSha256": "e7e3e2ce13301e030da94448277ebb76b73b05d421bb88c84e4f9961ed78225f"
   },
   "period": {
     "from": 2024,
     "to": 2026
   },
   "schemaVersion": 1,
+  "semantics": {
+    "periodo": {
+      "note": "Anno di riferimento dichiarato dalla fonte in ogni riga (Anno_Riferimento); il 2026 è parziale.",
+      "referencePeriod": "2024-2026"
+    },
+    "provenance": {
+      "acquisitionDate": "2026-09-03",
+      "canonicalUrls": [
+        "https://dati.consip.it/",
+        "https://dati.consip.it/download/dataset/ordini-convenzione-2024.csv",
+        "https://dati.consip.it/download/dataset/ordini-convenzione-2025.csv",
+        "https://dati.consip.it/download/dataset/ordini-convenzione-2026.csv",
+        "https://dati.consip.it/download/dataset/ordini-mepa-2024.csv",
+        "https://dati.consip.it/download/dataset/ordini-mepa-2025.csv",
+        "https://dati.consip.it/download/dataset/ordini-mepa-2026.csv"
+      ],
+      "checkedAt": "2026-09-03",
+      "hashes": "SHA-256 per asset in source.assets; artefatto in integrity.dataArtifact",
+      "holder": "Consip S.p.A. (società del MEF)",
+      "license": "CC-BY-4.0",
+      "publicationDate": "2026-03-19"
+    },
+    "soldi": {
+      "nature": "ordinato (ordini di acquisto sottoscritti) — non è stanziamento, non è impegno, non è pagamento SIOPE",
+      "note": "Somme come limiti inferiori per soppressione delle celle; gli storni negativi concorrono col loro segno. Zero osservato, cella soppressa e riga di sola anagrafica restano distinti nei conteggi.",
+      "unit": "centesimi di euro"
+    }
+  },
   "source": {
+    "acquisition": {
+      "acquiredAt": "2026-09-03",
+      "checkedAt": "2026-09-03",
+      "note": "CSV scaricati dagli URL canonici il 2026-09-03; publicationDate per-asset = Last-Modified HTTP (2026-03-19)."
+    },
     "assets": {
       "convenzioni-2024": {
         "bytes": 4003508,

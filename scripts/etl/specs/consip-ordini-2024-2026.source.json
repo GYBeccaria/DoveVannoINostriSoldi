@@ -54,7 +54,12 @@
       }
     },
     "encoding": "latin-1",
-    "decimalSeparator": ","
+    "decimalSeparator": ",",
+    "acquisition": {
+      "acquiredAt": "2026-09-03",
+      "checkedAt": "2026-09-03",
+      "note": "CSV scaricati dagli URL canonici il 2026-09-03; publicationDate per-asset = Last-Modified HTTP (2026-03-19)."
+    }
   },
   "expected": {
     "years": [
@@ -132,6 +137,6 @@
       "bytes": 67477,
       "sha256": "7b6f81749552e4fd1bba7b9599a68b53a0366ed8ed1b7bc65478f7a3b83b084b"
     },
-    "lockSha256": "6686b81471ed80c9d7e8250b5da4fa0ae32f06bd60210a9aac70ee98ae808f92"
+    "lockSha256": "e7e3e2ce13301e030da94448277ebb76b73b05d421bb88c84e4f9961ed78225f"
   }
 }
