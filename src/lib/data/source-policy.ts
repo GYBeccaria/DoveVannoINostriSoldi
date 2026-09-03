@@ -24,6 +24,7 @@ export type SourceId =
   | "bancaditalia"
   | "eurostat"
   | "eurostat-hicp"
+  | "eurostat-cofog"
   | "ameco"
   | "governi-presidenza";
 
@@ -399,6 +400,21 @@ export const SOURCE_POLICIES: Readonly<Record<SourceId, SourcePolicy>> = {
     timeoutMs: 20_000,
     maxRetries: 2,
     tags: ["source:eurostat-hicp", "domain:government-scorecard"],
+  },
+  "eurostat-cofog": {
+    id: "eurostat-cofog",
+    label: "Eurostat · spesa per funzione (COFOG)",
+    owner: "Eurostat (Commissione europea)",
+    sourceUrl: "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table?lang=en",
+    cadence: "annuale",
+    cadenceNote:
+      "I conti delle Amministrazioni pubbliche per funzione sono annuali e vengono rivisti: lo snapshot resta bloccato sui byte verificati e si aggiorna solo dopo nuova acquisizione e riconciliazione.",
+    discoveryRevalidateSeconds: DAY,
+    dataRevalidateSeconds: DAY,
+    staleAfterSeconds: 540 * DAY,
+    timeoutMs: 20_000,
+    maxRetries: 1,
+    tags: ["source:eurostat-cofog", "domain:public-spending"],
   },
 };
 

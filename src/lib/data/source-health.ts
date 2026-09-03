@@ -23,6 +23,7 @@ import { inpsCivilInvaliditySnapshot } from "@/lib/inps-invalidity-snapshot";
 import { cptRegionalFiscalSnapshot } from "@/lib/cpt-regional-fiscal-snapshot";
 import { istatPensionsSnapshot } from "@/lib/istat-pensions-snapshot";
 import { consipOrdiniData, consipOrdiniMetadata } from "@/lib/consip-ordini-snapshot";
+import { eurostatCofogData, eurostatCofogMetadata } from "@/lib/eurostat-cofog-snapshot";
 import { MEF_IRPEF_SOURCE } from "@/lib/data/mef-irpef-source";
 import { PNRR_CHILDCARE_SOURCE } from "@/lib/data/pnrr-childcare-source";
 import { getSsnCceSourceHealth, type SsnCceSourceHealth } from "@/lib/ssn-cce-snapshot";
@@ -607,6 +608,19 @@ function snapshotManagedGovernmentCurrentSignals(): SourceHealth {
   };
 }
 
+function snapshotManagedEurostatCofog(): SourceHealth {
+  const artifact = eurostatCofogMetadata.integrity.dataArtifact;
+  const { flagged, observedCells } = eurostatCofogData.coverage;
+  return {
+    ...baseHealth("eurostat-cofog"),
+    reachability: "not-probed",
+    freshness: freshnessFor("eurostat-cofog", eurostatCofogMetadata.coverage.observedAt),
+    latencyMs: null,
+    detail: `Snapshot ETL attivo · spesa per funzione COFOG ${eurostatCofogData.period.from}-${eurostatCofogData.period.to} (${eurostatCofogMetadata.source.datasetCode}) · copertura piena ${observedCells}/${observedCells} celle, ${flagged} con flag della fonte · ${artifact.bytes.toLocaleString("it-IT")} byte.`,
+    recordCount: eurostatCofogData.observations.length,
+  };
+}
+
 function snapshotManagedGovernmentScorecard(
   sourceId: "ameco" | "governi-presidenza",
 ): SourceHealth {
@@ -659,6 +673,7 @@ export function getSnapshotManagedSourceHealth(): SourceHealth[] {
     snapshotManagedPublicDebt("bancaditalia"),
     snapshotManagedPublicDebt("eurostat"),
     snapshotManagedGovernmentCurrentSignals(),
+    snapshotManagedEurostatCofog(),
   ];
 }
 
@@ -690,6 +705,7 @@ export const SOURCE_HEALTH_ADAPTERS = Object.freeze({
   bancaditalia: () => snapshotManagedPublicDebt("bancaditalia"),
   eurostat: () => snapshotManagedPublicDebt("eurostat"),
   "eurostat-hicp": snapshotManagedGovernmentCurrentSignals,
+  "eurostat-cofog": snapshotManagedEurostatCofog,
 } satisfies Record<SourceId, SourceHealthAdapter>);
 
 /** Orders every adapter by the public registry and fails closed on omissions. */

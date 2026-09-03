@@ -97,6 +97,12 @@ const querySchema = z.object({
   channel: z.enum(["convenzioni", "mepa"])
     .describe("Canale di acquisto Consip: convenzioni oppure mepa.")
     .optional(),
+  country: z.string().max(12)
+    .describe("Codice paese o aggregato Eurostat, per esempio IT, DE oppure EU27_2020.")
+    .optional(),
+  cofog: z.string().max(8)
+    .describe("Funzione COFOG: TOTAL oppure una divisione da GF01 a GF10.")
+    .optional(),
   period: z.string().max(20)
     .describe("Periodo dichiarato dal dataset, per esempio 2026-07-31 o 2026-Q2.")
     .optional(),

@@ -377,6 +377,35 @@ test("la proiezione MCP consip_ordini filtra per anno e canale e porta i caveat"
   assert.equal(result.source.licenseId, "CC-BY-4.0");
 });
 
+test("il dataset MCP eurostat_cofog dichiara fonte, filtri e caveat sul perimetro", () => {
+  const cofog = datasetCatalog.find((dataset) => dataset.id === "eurostat_cofog");
+  assert.deepEqual(cofog.sourceIds, ["eurostat-cofog"]);
+  assert.deepEqual(cofog.filters, ["country", "year", "cofog"]);
+  assert.match(cofog.caveat, /non sono pagamenti di cassa/i);
+  assert.match(cofog.caveat, /non misura efficienza/i);
+  assert.match(cofog.caveat, /interruzione della serie/i);
+  assert.equal(cofog.freshness, "snapshot");
+});
+
+test("la proiezione MCP eurostat_cofog filtra per paese, anno e funzione", async () => {
+  const result = await queryPublicDataset({ dataset: "eurostat_cofog", country: "IT", year: 2024 });
+  assert.equal(result.dataset, "eurostat_cofog");
+  assert.equal(result.observations.length, 11);
+  assert.equal(result.observations.every((row) => row.geo === "IT" && row.year === 2024), true);
+  assert.equal(result.caveats.length > 0, true);
+  assert.equal(result.source.licenseId, "CC-BY-4.0");
+
+  const health = await queryPublicDataset({ dataset: "eurostat_cofog", country: "IT", cofog: "GF07" });
+  assert.equal(health.observations.every((row) => row.function === "GF07"), true);
+});
+
+test("la proiezione MCP eurostat_cofog rifiuta filtri non dichiarati", async () => {
+  await assert.rejects(
+    () => queryPublicDataset({ dataset: "eurostat_cofog", region: "Lazio" }),
+    /Filtri non supportati/,
+  );
+});
+
 test("la proiezione MCP consip_ordini rifiuta filtri non dichiarati", async () => {
   await assert.rejects(
     () => queryPublicDataset({ dataset: "consip_ordini", region: "Lazio" }),

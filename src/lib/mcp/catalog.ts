@@ -19,6 +19,7 @@ export const DATASET_IDS = [
   "pnrr_asili",
   "anac_cig_snapshot",
   "consip_ordini",
+  "eurostat_cofog",
   "inps_invalidita_civile",
   "inps_pensioni_vigenti",
   "istat_pensioni_prestazioni",
@@ -67,6 +68,8 @@ export type DatasetQuery = {
   area?: string;
   chamber?: "camera" | "senato";
   channel?: "convenzioni" | "mepa";
+  country?: string;
+  cofog?: string;
   period?: string;
   sector?: string;
   band?: string;
@@ -129,6 +132,7 @@ const exampleQueries = {
   pnrr_asili: { dataset: "pnrr_asili", region: "Lazio", limit: 20 },
   anac_cig_snapshot: { dataset: "anac_cig_snapshot", year: 2025 },
   consip_ordini: { dataset: "consip_ordini", year: 2025, channel: "mepa" },
+  eurostat_cofog: { dataset: "eurostat_cofog", country: "IT", year: 2024 },
   inps_invalidita_civile: { dataset: "inps_invalidita_civile", year: 2023, region: "Calabria" },
   inps_pensioni_vigenti: { dataset: "inps_pensioni_vigenti" },
   istat_pensioni_prestazioni: { dataset: "istat_pensioni_prestazioni", year: 2022 },
@@ -214,6 +218,7 @@ const datasetDescriptors: DatasetDescriptorInput[] = [
   { id: "pnrr_asili", title: "PNRR asili e prima infanzia", summary: "Progetti Italia Domani per CUP, localizzazioni, finanziamenti, gare e aggiudicatari.", sourceIds: ["italiadomani"], freshness: "snapshot", filters: ["cup", "query", "region", "province", "limit", "offset"], caveat: "Il finanziamento PNRR non è un pagamento osservato; gare e aggiudicazioni sono livelli distinti." },
   { id: "anac_cig_snapshot", title: "Contratti pubblici ANAC · CIG 2025", summary: "Aggregati verificati sui dodici file mensili CIG 2025, con copertura, hash, procedure e fasce di importo.", sourceIds: ["anac"], freshness: "snapshot", filters: ["year"], caveat: "È uno strumento di screening aggregato: non prova spreco, illecito, corruzione o frazionamento e non consente ancora la ricerca live per CIG." },
   { id: "consip_ordini", title: "Acquisti Consip · ordini Convenzioni e MEPA", summary: "Righe ordinate su Convenzioni e MEPA 2024-2026 aggregate per regione e tipologia di amministrazione, con importi noti e celle soppresse dichiarate.", sourceIds: ["consip"], freshness: "snapshot", filters: ["year", "channel"], caveat: "Gli importi sono limiti inferiori: la fonte sopprime il valore in molte righe (nei file MEPA importo e numero ordini sono mutuamente esclusivi) e pubblica anche storni negativi. Ordinato non è pagato e Consip non è tutta la spesa per acquisti della PA: nessun confronto con ANAC o SIOPE è una riconciliazione." },
+  { id: "eurostat_cofog", title: "Eurostat · spesa pubblica per funzione (COFOG)", summary: "Spesa delle Amministrazioni pubbliche per funzione COFOG dal 2014 al 2024, in milioni di euro e in quota di PIL, per UE27, area euro e trenta Stati.", sourceIds: ["eurostat-cofog"], freshness: "snapshot", filters: ["country", "year", "cofog"], caveat: "Competenza economica SEC 2010: non sono pagamenti di cassa, quindi nessun confronto con SIOPE è una riconciliazione e la spesa per funzione non misura efficienza o qualità del servizio. Il totale è quello pubblicato dalla fonte e differisce dalla somma delle dieci divisioni per solo arrotondamento. Le celle con flag «b» segnano una interruzione della serie storica e non sono confrontabili a cavallo; quelle con flag «p» sono provvisorie. Gli aggregati UE27 e area euro contengono già gli Stati membri e non vanno sommati a essi." },
   { id: "inps_invalidita_civile", title: "Prestazioni INPS di invalidità civile", summary: "Spesa nazionale, stock di prestazioni e nuove pensioni di invalidità civile per regione.", sourceIds: ["inps"], freshness: "snapshot", filters: ["year", "region"], caveat: "Prestazioni, pensioni, spesa e nuove decorrenze sono misure diverse. I dati aggregati non provano frode e non consentono attribuzioni individuali." },
   { id: "inps_pensioni_vigenti", title: "Pensioni erogate dall'INPS", summary: "Stock di pensioni vigenti al 1 gennaio 2026, composizione per natura, categoria e gestione, e serie dei conteggi 2012-2026.", sourceIds: ["inps"], freshness: "snapshot", filters: [], caveat: "Perimetro solo INPS, inclusa la Gestione dipendenti pubblici ed esclusa Ex Inpgi. Stock, liquidazioni e tavola per anno di decorrenza restano misure diverse. Non è sommabile con il Casellario ISTAT né con la pagina Invalidità civile." },
   { id: "istat_pensioni_prestazioni", title: "Pensioni ISTAT · prestazioni", summary: "Numero di prestazioni pensionistiche, importo lordo annuo e importo lordo medio per categoria, dal 2012 al 2022.", sourceIds: ["istat-casellario-pensioni"], freshness: "snapshot", filters: ["year"], caveat: "Il denominatore è il numero di prestazioni, non il numero di persone. Gli importi sono lordi e nominali, espressi in migliaia di euro per i totali e in euro per la media; i conteggi delle categorie riconciliano esattamente, mentre i relativi importi possono differire dal totale di 1-2 migliaia di euro per arrotondamento della fonte. Non è sommabile con pensionati né con CIVDIS/invalidità civile INPS." },

@@ -76,6 +76,19 @@ export const publicSources: PublicSource[] = [
     joinKeys: ["periodo", "geo", "coicop18", "unità"],
   },
   {
+    slug: "eurostat-cofog",
+    name: "Eurostat · spesa pubblica per funzione (COFOG)",
+    owner: "Eurostat (Commissione europea)",
+    area: "Spesa delle Amministrazioni pubbliche per funzione",
+    cadence: "Annuale; rilascio verificato del 21 luglio 2026",
+    coverage:
+      "UE27, area euro e 30 Stati, 2014–2024; totale e dieci divisioni COFOG in milioni di euro e in quota di PIL",
+    format: "Statistics API · JSON-stat · snapshot JSON verificato",
+    url: "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table?lang=en",
+    note: "Competenza economica SEC 2010, non pagamenti di cassa: non è confrontabile con SIOPE né sommabile alle missioni del bilancio dello Stato. La ripartizione per funzione non misura efficienza o qualità del servizio. Le celle con flag «b» segnano una interruzione della serie storica.",
+    joinKeys: ["geo", "anno", "funzione COFOG", "unità"],
+  },
+  {
     slug: "siope",
     name: "SIOPE / SIOPE+",
     owner: "RGS · Banca d'Italia",

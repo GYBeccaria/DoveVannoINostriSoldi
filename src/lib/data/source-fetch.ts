@@ -80,6 +80,8 @@ const ALLOWED_HOSTS: Readonly<Record<SourceId, readonly string[]>> = {
   bancaditalia: [],
   eurostat: [],
   "eurostat-hicp": [],
+  // Snapshot-only: le risposte JSON-stat sono acquisite e vincolate dall'ETL, mai scaricate a runtime.
+  "eurostat-cofog": [],
 };
 
 const RETRYABLE_STATUS = new Set([408, 425, 429, 500, 502, 503, 504]);

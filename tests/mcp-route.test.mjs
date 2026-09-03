@@ -329,6 +329,8 @@ test("MCP query tool describes every input parameter for clients and directories
     "area",
     "chamber",
     "channel",
+    "country",
+    "cofog",
     "period",
     "sector",
     "band",
