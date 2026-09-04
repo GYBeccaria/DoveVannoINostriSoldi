@@ -69,10 +69,9 @@ export type DatasetQuery = {
   area?: string;
   chamber?: "camera" | "senato";
   territory?: string;
-  cofog?: string;
-  channel?: "convenzioni" | "mepa";
   country?: string;
   cofog?: string;
+  channel?: "convenzioni" | "mepa";
   period?: string;
   sector?: string;
   band?: string;

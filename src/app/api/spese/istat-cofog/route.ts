@@ -10,10 +10,17 @@ function parseYear(value: string | null): number | undefined {
   return Number.isSafeInteger(year) ? year : NaN;
 }
 
-function parseCode(value: string | null): string | undefined | null {
+function parseTerritory(value: string | null): string | undefined | null {
   if (value === null) return undefined;
   if (!/^[A-Za-z0-9]{2,8}$/.test(value)) return null;
   return value;
+}
+
+function parseFunction(value: string | null): string | undefined | null {
+  if (value === null) return undefined;
+  // Il totale ufficiale è "G" (una sola lettera); le divisioni sono G010…G100.
+  if (!/^(G|G(?:0[1-9]0|100))$/i.test(value)) return null;
+  return value.toUpperCase();
 }
 
 export function GET(request: NextRequest) {
@@ -24,7 +31,7 @@ export function GET(request: NextRequest) {
     return Response.json({ error: "Il parametro anno deve essere un anno a quattro cifre." }, { status: 400 });
   }
 
-  const area = parseCode(params.get("territorio"));
+  const area = parseTerritory(params.get("territorio"));
   if (area === null) {
     return Response.json(
       { error: "Il parametro territorio accetta un codice ISTAT, per esempio IT, ITF3 o ITCDE." },
@@ -32,7 +39,7 @@ export function GET(request: NextRequest) {
     );
   }
 
-  const cofogFunction = parseCode(params.get("funzione"));
+  const cofogFunction = parseFunction(params.get("funzione"));
   if (cofogFunction === null) {
     return Response.json(
       { error: "Il parametro funzione accetta G oppure una divisione COFOG da G010 a G100." },
