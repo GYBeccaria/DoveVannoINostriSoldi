@@ -297,6 +297,7 @@ export async function queryPublicDataset(
         province: query.province,
         code: query.code,
         query: query.query,
+        detail: query.detail,
         limit: query.limit,
         offset: query.offset,
       }));
