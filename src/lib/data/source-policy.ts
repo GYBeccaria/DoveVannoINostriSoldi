@@ -25,6 +25,7 @@ export type SourceId =
   | "eurostat"
   | "eurostat-hicp"
   | "eurostat-cofog"
+  | "istat-cofog"
   | "ameco"
   | "governi-presidenza";
 
@@ -415,6 +416,21 @@ export const SOURCE_POLICIES: Readonly<Record<SourceId, SourcePolicy>> = {
     timeoutMs: 20_000,
     maxRetries: 1,
     tags: ["source:eurostat-cofog", "domain:public-spending"],
+  },
+  "istat-cofog": {
+    id: "istat-cofog",
+    label: "ISTAT · consumi finali della PA per funzione",
+    owner: "ISTAT — Istituto nazionale di statistica",
+    sourceUrl: "https://esploradati.istat.it/databrowser/",
+    cadence: "annuale",
+    cadenceNote:
+      "I conti nazionali per funzione escono annualmente e vengono rivisti: lo snapshot fissa una edizione di rilascio e si aggiorna solo dopo nuova acquisizione e riconciliazione.",
+    discoveryRevalidateSeconds: DAY,
+    dataRevalidateSeconds: DAY,
+    staleAfterSeconds: 540 * DAY,
+    timeoutMs: 20_000,
+    maxRetries: 1,
+    tags: ["source:istat-cofog", "domain:public-spending"],
   },
 };
 

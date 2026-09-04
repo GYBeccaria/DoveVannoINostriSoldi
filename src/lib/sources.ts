@@ -89,6 +89,19 @@ export const publicSources: PublicSource[] = [
     joinKeys: ["geo", "anno", "funzione COFOG", "unità"],
   },
   {
+    slug: "istat-cofog",
+    name: "ISTAT · consumi finali della PA per funzione (COFOG)",
+    owner: "ISTAT — Istituto nazionale di statistica",
+    area: "Consumi finali delle Amministrazioni pubbliche per funzione",
+    cadence: "Annuale, con edizioni di revisione; edizione fissata 2025M12",
+    coverage:
+      "Italia, ripartizioni e regioni, 1995–2023; totale e dieci divisioni COFOG a prezzi correnti",
+    format: "SDMX-CSV 1.0.0 · snapshot JSON verificato",
+    url: "https://esploradati.istat.it/databrowser/",
+    note: "Sono i consumi finali (P3) delle AP, non la spesa pubblica totale: nel 2023 valgono circa 383 miliardi contro i circa 1149 della spesa totale. Non è confrontabile con Eurostat COFOG né con SIOPE. Le aree composite contengono già le loro parti. Il dato territoriale è territorio di erogazione contabile, non «quanto riceve» un cittadino.",
+    joinKeys: ["territorio", "anno", "funzione COFOG", "edizione"],
+  },
+  {
     slug: "siope",
     name: "SIOPE / SIOPE+",
     owner: "RGS · Banca d'Italia",

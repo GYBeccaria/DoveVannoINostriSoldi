@@ -100,8 +100,11 @@ const querySchema = z.object({
   country: z.string().max(12)
     .describe("Codice paese o aggregato Eurostat, per esempio IT, DE oppure EU27_2020.")
     .optional(),
+  territory: z.string().max(8)
+    .describe("Codice territoriale ISTAT, per esempio IT, ITF3 oppure ITCDE.")
+    .optional(),
   cofog: z.string().max(8)
-    .describe("Funzione COFOG: TOTAL oppure una divisione da GF01 a GF10.")
+    .describe("Funzione COFOG: per Eurostat TOTAL o GF01…GF10; per ISTAT il totale G oppure una divisione da G010 a G100.")
     .optional(),
   period: z.string().max(20)
     .describe("Periodo dichiarato dal dataset, per esempio 2026-07-31 o 2026-Q2.")

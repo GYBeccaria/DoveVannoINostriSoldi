@@ -51,6 +51,7 @@ const EXPECTED_SOURCE_IDS = [
   "eurostat",
   "eurostat-hicp",
   "eurostat-cofog",
+  "istat-cofog",
   "ameco",
   "governi-presidenza",
 ];
