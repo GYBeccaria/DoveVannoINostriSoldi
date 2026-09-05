@@ -26,6 +26,7 @@ import { istatPensionsSnapshot } from "@/lib/istat-pensions-snapshot";
 import { consipOrdiniData, consipOrdiniMetadata } from "@/lib/consip-ordini-snapshot";
 import { eurostatCofogData, eurostatCofogMetadata } from "@/lib/eurostat-cofog-snapshot";
 import { inpsNaspiData, inpsNaspiMetadata } from "@/lib/inps-naspi-snapshot";
+import { mefIrpefDettaglioData, mefIrpefDettaglioMetadata } from "@/lib/mef-irpef-dettaglio-snapshot";
 import { istatCofogData, istatCofogMetadata } from "@/lib/istat-cofog-snapshot";
 import { istatEpeaData, istatEpeaMetadata } from "@/lib/istat-epea-snapshot";
 import { MEF_IRPEF_SOURCE } from "@/lib/data/mef-irpef-source";
@@ -674,6 +675,19 @@ function snapshotManagedIstatEpea(): SourceHealth {
   };
 }
 
+function snapshotManagedMefIrpefDettaglio(): SourceHealth {
+  const artifact = mefIrpefDettaglioMetadata.integrity.dataArtifact;
+  const { observedFiles, observedRows, emptyCells } = mefIrpefDettaglioData.coverage;
+  return {
+    ...baseHealth("mef-irpef-dettaglio"),
+    reachability: "not-probed",
+    freshness: freshnessFor("mef-irpef-dettaglio", mefIrpefDettaglioMetadata.observedAt),
+    latencyMs: null,
+    detail: `Snapshot ETL attivo · dettaglio IRPEF ${mefIrpefDettaglioData.period.from}-${mefIrpefDettaglioData.period.to} · ${observedFiles} file su nove famiglie, ${observedRows.toLocaleString("it-IT")} righe e ${emptyCells.toLocaleString("it-IT")} celle vuote distinte dagli zeri · ${artifact.bytes.toLocaleString("it-IT")} byte.`,
+    recordCount: observedRows,
+  };
+}
+
 function snapshotManagedGovernmentScorecard(
   sourceId: "ameco" | "governi-presidenza",
 ): SourceHealth {
@@ -718,6 +732,7 @@ export function getSnapshotManagedSourceHealth(): SourceHealth[] {
     snapshotManagedIstatCofog(),
     snapshotManagedIstatEpea(),
     snapshotManagedInpsNaspi(),
+    snapshotManagedMefIrpefDettaglio(),
   ];
 }
 
@@ -753,6 +768,7 @@ export const SOURCE_HEALTH_ADAPTERS = Object.freeze({
   "istat-cofog": snapshotManagedIstatCofog,
   "istat-epea": snapshotManagedIstatEpea,
   "inps-naspi": snapshotManagedInpsNaspi,
+  "mef-irpef-dettaglio": snapshotManagedMefIrpefDettaglio,
 } satisfies Record<SourceId, SourceHealthAdapter>);
 
 /** Orders every adapter by the public registry and fails closed on omissions. */

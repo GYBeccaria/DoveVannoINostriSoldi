@@ -26,6 +26,7 @@ export const DATASET_IDS = [
   "istat_cofog",
   "istat_epea",
   "inps_naspi",
+  "mef_irpef_dettaglio",
   "istat_pensionati_persone",
   "cpt_finanza_regionale",
   "mef_irpef_comunale",
@@ -74,6 +75,8 @@ export type DatasetQuery = {
   territory?: string;
   table?: string;
   measure?: string;
+  family?: string;
+  breakdown?: string;
   country?: string;
   cofog?: string;
   channel?: "convenzioni" | "mepa";
@@ -148,6 +151,7 @@ const exampleQueries = {
   istat_cofog: { dataset: "istat_cofog", territory: "IT", year: 2023 },
   istat_epea: { dataset: "istat_epea", year: 2022, sector: "S13_15", cepa: "CEPA1" },
   inps_naspi: { dataset: "inps_naspi", table: "beneficiari_02", year: 2022 },
+  mef_irpef_dettaglio: { dataset: "mef_irpef_dettaglio", family: "tipo_reddito", breakdown: "regione", year: 2025 },
   istat_pensionati_persone: { dataset: "istat_pensionati_persone", year: 2022 },
   cpt_finanza_regionale: { dataset: "cpt_finanza_regionale", year: 2023, region: "Calabria" },
   mef_irpef_comunale: {
@@ -235,6 +239,7 @@ const datasetDescriptors: DatasetDescriptorInput[] = [
   { id: "istat_cofog", title: "ISTAT · consumi finali della PA per funzione (COFOG)", summary: "Consumi finali delle Amministrazioni pubbliche per funzione COFOG dal 1995 al 2023, a prezzi correnti, per Italia, ripartizioni e regioni.", sourceIds: ["istat-cofog"], freshness: "snapshot", filters: ["territory", "year", "cofog"], caveat: "Sono i consumi finali (P3), NON la spesa pubblica totale: nel 2023 circa 383 miliardi contro i circa 1149 della spesa totale delle AP. Nessun confronto o somma con Eurostat COFOG, SIOPE o le missioni del bilancio è una riconciliazione. L\u2019edizione è una revisione e resta fissata: fra due edizioni cambiano centinaia di celle. Le aree composite (Nord, Centro-nord, Mezzogiorno, Trentino Alto Adige) contengono già le loro parti e non vanno sommate a esse. Il dato territoriale è territorio di erogazione contabile, non quanto riceve un cittadino, e non misura efficienza o qualità del servizio." },
   { id: "istat_epea", title: "ISTAT · spesa per la protezione dell'ambiente (EPEA)", summary: "Conti della spesa per la protezione dell'ambiente, edizione 2025M2, anni 2016–2022, per settore istituzionale e classe CEPA.", sourceIds: ["istat-epea"], freshness: "snapshot", filters: ["year", "sector", "cepa"], caveat: "Contabilità SEC di competenza: non è cassa SIOPE. Non sommare né confrontare in silenzio con RGS, PNRR Missione 2 o SAD/SAF. TOT_CEPA e totali settoriali non vanno sommati alle parti che già li compongono. Edizione 2025M2 fissata.", },
   { id: "inps_naspi", title: "INPS · NASpI beneficiari e trattamenti", summary: "Beneficiari e trattamenti NASpI dal 2018 al 2022 per ripartizione, regione e provincia, con sesso, classe di età e durata teorica, da nove tabelle SDMX.", sourceIds: ["inps-naspi"], freshness: "snapshot", filters: ["table", "measure", "year", "territory"], caveat: "Beneficiari e trattamenti sono misure diverse — persone contro periodi di prestazione — e non vanno sommate né confrontate. Sono conteggi, NON euro: nessuna somma con la spesa per prestazioni, con SIOPE o con i bilanci INPS. È un flusso annuale, non lo stock di pensioni vigenti o di invalidità civile già in piattaforma, e non è sommabile fra anni. Le celle soppresse per privacy restano nulle e non sono zeri osservati. Territorio, sesso, classe di età e durata sono dimensioni distinte e non denominatori intercambiabili. Il numero di beneficiari non dice nulla su adeguatezza o merito della prestazione." },
+  { id: "mef_irpef_dettaglio", title: "MEF · dettaglio IRPEF per regione, età e sesso", summary: "Tipo di reddito, calcolo IRPEF e bonus dichiarati, incrociati con la classe di reddito complessivo, per regione, classe di età e sesso, dal 2017 al 2025.", sourceIds: ["mef-irpef-dettaglio"], freshness: "snapshot", filters: ["family", "breakdown", "year"], caveat: "Imposta e redditi DICHIARATI, non gettito riscosso: nessuna somma con SIOPE o con i bilanci pubblici. Frequenza, Ammontare in euro e Numero contribuenti sono tre nature distinte e non si sommano né si confrontano. La famiglia bonus misura due strumenti diversi sotto lo stesso nome — Bonus IRPEF fino al 2020, Trattamento integrativo dal 2022, entrambi nel 2021 — e le serie non sono concatenabili. Una cella vuota non è uno zero osservato. Le dimensioni non sono denominatori intercambiabili e i tagli non si sommano fra loro. Alcune misure esistono in un taglio e non in un altro nello stesso anno: l\u2019assenza è dichiarata, mai riempita." },
   { id: "inps_invalidita_civile", title: "Prestazioni INPS di invalidità civile", summary: "Spesa nazionale, stock di prestazioni e nuove pensioni di invalidità civile per regione.", sourceIds: ["inps"], freshness: "snapshot", filters: ["year", "region"], caveat: "Prestazioni, pensioni, spesa e nuove decorrenze sono misure diverse. I dati aggregati non provano frode e non consentono attribuzioni individuali." },
   { id: "inps_pensioni_vigenti", title: "Pensioni erogate dall'INPS", summary: "Stock di pensioni vigenti al 1 gennaio 2026, composizione per natura, categoria e gestione, e serie dei conteggi 2012-2026.", sourceIds: ["inps"], freshness: "snapshot", filters: [], caveat: "Perimetro solo INPS, inclusa la Gestione dipendenti pubblici ed esclusa Ex Inpgi. Stock, liquidazioni e tavola per anno di decorrenza restano misure diverse. Non è sommabile con il Casellario ISTAT né con la pagina Invalidità civile." },
   { id: "istat_pensioni_prestazioni", title: "Pensioni ISTAT · prestazioni", summary: "Numero di prestazioni pensionistiche, importo lordo annuo e importo lordo medio per categoria, dal 2012 al 2022.", sourceIds: ["istat-casellario-pensioni"], freshness: "snapshot", filters: ["year"], caveat: "Il denominatore è il numero di prestazioni, non il numero di persone. Gli importi sono lordi e nominali, espressi in migliaia di euro per i totali e in euro per la media; i conteggi delle categorie riconciliano esattamente, mentre i relativi importi possono differire dal totale di 1-2 migliaia di euro per arrotondamento della fonte. Non è sommabile con pensionati né con CIVDIS/invalidità civile INPS." },
