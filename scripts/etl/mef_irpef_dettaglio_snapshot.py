@@ -58,6 +58,7 @@ OFFICIAL_PREFIX = "https://www1.finanze.gov.it/"
 INTEGER = re.compile(r"^-?\d{1,3}(\.\d{3})*$")
 
 CAVEATS = (
+    "Gli anni dei file, delle tabelle e dei filtri sono anni di dichiarazione (2017-2025); gli anni di imposta sono 2016-2024, dichiarati nel catalogo e nel campo taxYear. Anche le transizioni degli strumenti qui indicate usano anni di dichiarazione.",
     "La famiglia bonus misura due strumenti diversi sotto lo stesso nome: Bonus IRPEF fino al 2020, "
     "Trattamento integrativo dal 2022, entrambi nel 2021. Non sono concatenabili in una serie unica.",
     "Imposta dichiarata non e' gettito riscosso: sono le dichiarazioni dei contribuenti, non gli incassi "
@@ -134,6 +135,11 @@ def load_source_spec(path: Path) -> dict[str, Any]:
         raise SnapshotError(
             "source lock: dichiarati vuoti ma con righe: " + ", ".join(sorted(vuoti_dichiarati - vuoti_osservati))
         )
+    if spec.get("periodBasis") != "declaration-year" or spec.get("taxPeriod") != {"from": 2016, "to": 2024}:
+        raise SnapshotError("source lock: periodo fiscale non dichiarato")
+    for table in tables.values():
+        if table.get("taxYear") != table["year"] - 1 or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", table.get("publicationDate", "")):
+            raise SnapshotError("source lock: anni o data pubblicazione incoerenti")
     return spec
 
 
@@ -208,7 +214,7 @@ def build_data(inputs: dict[str, bytes], spec: dict[str, Any]) -> dict[str, Any]
         parsed = _read_table(inputs[name], name, table, spec)
         tables.append({
             "id": name, "family": table["family"], "breakdown": table["breakdown"],
-            "year": table["year"], "schemaId": table["schemaId"],
+            "year": table["year"], "taxYear": table["taxYear"], "publicationDate": table["publicationDate"], "schemaId": table["schemaId"],
             "instruments": list(table["instruments"]),
             "rows": table["rows"], "emptyCells": table["emptyCells"],
             "negativeCells": table["negativeCells"],
@@ -226,6 +232,8 @@ def build_data(inputs: dict[str, bytes], spec: dict[str, Any]) -> dict[str, Any]
         "schemaVersion": 1,
         "datasetId": DATASET_ID,
         "period": dict(spec["period"]),
+        "periodBasis": spec["periodBasis"],
+        "taxPeriod": dict(spec["taxPeriod"]),
         "caveats": list(CAVEATS),
         "instruments": dict(spec["instruments"]),
         "schemas": {sid: {"dimensions": list(s["dimensions"]),
@@ -272,12 +280,21 @@ def validate_snapshot(data: dict[str, Any]) -> None:
 
     widths = {sid: len(s["measures"]) for sid, s in data["schemas"].items()}
     empty = negative = 0
+    keys = set()
+    counts = [0] * len(data["tables"])
     for index, table in enumerate(data["tables"]):
         if table["schemaId"] not in widths:
             raise SnapshotError(f"data artifact: schema sconosciuto in {table['id']}")
         if table["family"] == "bonus_irpef" and not table["instruments"]:
             raise SnapshotError(f"data artifact: {table['id']} non dichiara lo strumento misurato")
     for row in data["rows"]:
+        if type(row.get("t")) is not int or not 0 <= row["t"] < len(data["tables"]):
+            raise SnapshotError("data artifact: indice tabella non valido")
+        key = (row["t"], *row["k"])
+        if key in keys:
+            raise SnapshotError("data artifact: riga duplicata")
+        keys.add(key)
+        counts[row["t"]] += 1
         table = data["tables"][row["t"]]
         width = widths[table["schemaId"]]
         if len(row["v"]) != width:
@@ -287,10 +304,12 @@ def validate_snapshot(data: dict[str, Any]) -> None:
         for value in row["v"]:
             if value is None:
                 empty += 1
-            elif not isinstance(value, int) or isinstance(value, bool):
+            elif not isinstance(value, int) or isinstance(value, bool) or abs(value) > 2**53 - 1:
                 raise SnapshotError(f"data artifact: valore non intero in {table['id']}")
             elif value < 0:
                 negative += 1
+    if counts != [t["rows"] for t in data["tables"]]:
+        raise SnapshotError("data artifact: conteggio righe per tabella divergente")
     if empty != coverage["emptyCells"]:
         raise SnapshotError("data artifact: conteggio delle celle vuote divergente")
     if negative != coverage["negativeCells"]:
@@ -309,9 +328,12 @@ def build_metadata(spec: dict[str, Any], data_bytes: bytes, data: dict[str, Any]
         "schemaVersion": 1,
         "datasetId": DATASET_ID,
         "period": dict(spec["period"]),
-        "observedAt": source["acquisition"]["checkedAt"],
+        "periodBasis": spec["periodBasis"],
+        "taxPeriod": dict(spec["taxPeriod"]),
+        "observedAt": source["acquisition"]["acquiredAt"],
         "source": {
             "owner": source["owner"],
+            "catalogReceipt": dict(source["catalogReceipt"]),
             "landingUrl": source["landingUrl"],
             "licenseId": source["licenseId"],
             "licenseNote": source["licenseNote"],
@@ -336,10 +358,11 @@ def build_metadata(spec: dict[str, Any], data_bytes: bytes, data: dict[str, Any]
                          "Cella vuota non e' zero. I negativi esistono e restano col loro segno."),
             },
             "periodo": {
-                "referencePeriod": f"{spec['period']['from']}-{spec['period']['to']}",
-                "note": ("Anno di imposta dal nome del file dichiarato nel lock. Due file del 2018 sono elencati "
+                "referencePeriod": f"{spec['taxPeriod']['from']}-{spec['taxPeriod']['to']}",
+                "note": ("Anni di imposta 2016-2024, distinti dagli anni di dichiarazione 2017-2025 usati nei filtri. "
+                         "La corrispondenza e la data di pubblicazione vengono dalle schede del catalogo ufficiale. Due file delle dichiarazioni 2018 sono elencati "
                          "dal catalogo ma rispondono 404: quegli anni restano assenti e dichiarati. La famiglia "
-                         "bonus cambia strumento misurato nel 2021 e le serie non sono concatenabili."),
+                         "bonus espone entrambi gli strumenti nelle dichiarazioni 2021 (anno di imposta 2020); le serie non sono concatenabili."),
             },
             "provenance": {
                 "holder": source["owner"],
@@ -377,6 +400,16 @@ def _check(spec_path: Path, data_path: Path, meta_path: Path) -> None:
     artifact = metadata["integrity"]["dataArtifact"]
     if artifact["sha256"] != sha256_bytes(data_bytes) or artifact["bytes"] != len(data_bytes):
         raise SnapshotError("meta: hash o dimensione del data artifact divergenti")
+    if spec["integrity"]["dataArtifact"] != artifact:
+        raise SnapshotError("data artifact: hash divergente dal source lock")
+    if metadata != build_metadata(spec, data_bytes, data):
+        raise SnapshotError("meta: metadati divergenti dal source lock")
+    if data["schemas"] != spec["expected"]["schemas"]:
+        raise SnapshotError("data artifact: schemi divergenti dal lock")
+    for table in data["tables"]:
+        expected = spec["expected"]["tables"].get(table["id"])
+        if expected is None or any(table[key] != expected[key] for key in table if key != "id"):
+            raise SnapshotError("data artifact: tabella divergente dal lock")
     if metadata["integrity"]["sourceLockSha256"] != spec["integrity"]["lockSha256"]:
         raise SnapshotError("meta: sourceLockSha256 divergente dal lock")
 

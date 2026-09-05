@@ -17,17 +17,29 @@ function parseToken(value: string | null): string | undefined | null {
 
 export function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
+  const allowed = new Set(["anno", "famiglia", "taglio", "limit", "offset"]);
+  for (const key of params.keys()) {
+    if (!allowed.has(key) || params.getAll(key).length !== 1) {
+      return Response.json({ error: `Parametro sconosciuto o ripetuto: ${key}.` }, { status: 400, headers: { "Cache-Control": "no-store" } });
+    }
+  }
+  for (const key of ["limit", "offset"]) {
+    const value = params.get(key);
+    if (value !== null && !/^(0|[1-9]\d*)$/.test(value)) return Response.json({ error: `Parametro ${key} non canonico.` }, { status: 400, headers: { "Cache-Control": "no-store" } });
+  }
+  const limit = params.has("limit") ? Number(params.get("limit")) : undefined;
+  const offset = params.has("offset") ? Number(params.get("offset")) : undefined;
 
   const year = parseYear(params.get("anno"));
   if (Number.isNaN(year)) {
-    return Response.json({ error: "Il parametro anno deve essere un anno a quattro cifre." }, { status: 400 });
+    return Response.json({ error: "Il parametro anno deve essere un anno di dichiarazione a quattro cifre." }, { status: 400, headers: { "Cache-Control": "no-store" } });
   }
 
   const family = parseToken(params.get("famiglia"));
   if (family === null) {
     return Response.json(
       { error: "Il parametro famiglia accetta tipo_reddito, calcolo_irpef oppure bonus_irpef." },
-      { status: 400 },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
 
@@ -35,7 +47,7 @@ export function GET(request: NextRequest) {
   if (breakdown === null) {
     return Response.json(
       { error: "Il parametro taglio accetta regione, classeEta oppure sesso." },
-      { status: 400 },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
 
@@ -47,12 +59,12 @@ export function GET(request: NextRequest) {
         error:
           "Specificare almeno un filtro fra famiglia, taglio e anno: la serie completa non viene servita in un'unica risposta.",
       },
-      { status: 400 },
+      { status: 400, headers: { "Cache-Control": "no-store" } },
     );
   }
 
   try {
-    return Response.json(queryMefIrpefDettaglio({ family, breakdown, year }), {
+    return Response.json(queryMefIrpefDettaglio({ family, breakdown, year, limit, offset }), {
       headers: { "Cache-Control": CACHE_CONTROL },
     });
   } catch (error) {

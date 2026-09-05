@@ -145,12 +145,12 @@ export const publicSources: PublicSource[] = [
     name: "MEF · dettaglio IRPEF per regione, età e sesso",
     owner: "MEF — Dipartimento delle Finanze",
     area: "Dichiarazioni IRPEF per classe di reddito",
-    cadence: "Annuale per anno di imposta; 79 file verificati",
+    cadence: "Annuale; anni di dichiarazione e imposta distinti; 79 file verificati",
     coverage:
-      "Italia, 2017–2025; tipo di reddito, calcolo IRPEF e bonus incrociati con la classe di reddito, per regione, classe di età e sesso",
+      "Italia, anni di imposta 2016–2024 (dichiarazioni 2017–2025); tipo di reddito, calcolo IRPEF e bonus incrociati con la classe di reddito, per regione, classe di età e sesso",
     format: "CSV · snapshot JSON verificato",
     url: "https://www1.finanze.gov.it/finanze/analisi_stat/public/index.php?opendata=yes",
-    note: "Imposta dichiarata non è gettito riscosso. Frequenza, Ammontare e Numero contribuenti sono nature distinte e non si sommano. La famiglia bonus misura due strumenti diversi: Bonus IRPEF fino al 2020, Trattamento integrativo dal 2022, entrambi nel 2021. Una cella vuota non è uno zero osservato. Due file del 2018 sono elencati dal catalogo ma non esistono, e un rilascio del 2024 è pubblicato senza righe: assenze dichiarate, mai imputate.",
+    note: "Imposta dichiarata non è gettito riscosso. Frequenza, Ammontare e Numero contribuenti sono nature distinte e non si sommano. Negli anni di dichiarazione, la famiglia bonus misura due strumenti diversi: Bonus IRPEF fino al 2020, Trattamento integrativo dal 2022, entrambi nel 2021. Una cella vuota non è uno zero osservato. Due file del 2018 sono elencati dal catalogo ma non esistono, e un rilascio del 2024 è pubblicato senza righe: assenze dichiarate, mai imputate.",
     joinKeys: ["anno", "classe di reddito", "regione", "classe di età", "sesso"],
   },
   {

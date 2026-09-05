@@ -76,7 +76,7 @@ const exhaustiveLatestDataBySlug = {
   },
   "mef-irpef-dettaglio": {
     kind: "period",
-    label: `${mefIrpefDettaglioData.period.from}-${mefIrpefDettaglioData.period.to}`,
+    label: `${mefIrpefDettaglioData.taxPeriod.from}-${mefIrpefDettaglioData.taxPeriod.to} (anni di imposta)`,
   },
   siope: dated(siopeMunicipalSnapshot.source.siopeMovementsLastModified),
   ipa: dated(siopeMunicipalSnapshot.source.ipaLastModified),

@@ -36,3 +36,20 @@ test("la route rifiuta token malformati e valori sconosciuti", () => {
   assert.equal(GET(new NextRequest(`${U}?famiglia=iva`)).status, 400);
   assert.equal(GET(new NextRequest(`${U}?taglio=provincia`)).status, 400);
 });
+
+test("unknown, repeated and invalid pagination parameters fail without caching", () => {
+  for (const suffix of ["foo=x", "anno=2024", "limit=0", "limit=101", "offset=-1", "limit=01", "offset=100001"]) {
+    const response = GET(new NextRequest(`${U}?anno=2025&${suffix}`));
+    assert.equal(response.status, 400, suffix);
+    assert.match(response.headers.get("cache-control"), /no-store/);
+  }
+});
+
+test("HTTP pagination includes source hashes and the economic reference year", async () => {
+  const response = GET(new NextRequest(`${U}?famiglia=tipo_reddito&taglio=regione&anno=2025&limit=2&offset=2`));
+  const result = await response.json();
+  assert.equal(result.pagination.returnedRows, 2);
+  assert.equal(result.pagination.nextOffset, 4);
+  assert.equal(result.tables[0].table.taxYear, 2024);
+  assert.match(result.tables[0].source.sha256, /^[a-f0-9]{64}$/);
+});

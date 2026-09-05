@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import sourceLock from "../../../scripts/etl/specs/mef-irpef-dettaglio-2017-2025.source.json";
 import { z } from "zod";
 
 /**
@@ -46,6 +48,8 @@ const tableSchema = z
     family,
     breakdown,
     year: z.number().int().min(2017).max(2025),
+    taxYear: z.number().int().min(2016).max(2024),
+    publicationDate: isoDate,
     schemaId: z.string().min(2),
     instruments: z.array(instrument),
     // Zero righe e' possibile: il catalogo pubblica un rilascio con la sola
@@ -61,6 +65,8 @@ export const mefIrpefDettaglioDataSchema = z
     schemaVersion: z.literal(1),
     datasetId: z.literal("mef-irpef-dettaglio"),
     period: z.object({ from: z.literal(2017), to: z.literal(2025) }).strict(),
+    periodBasis: z.literal("declaration-year"),
+    taxPeriod: z.object({ from: z.literal(2016), to: z.literal(2024) }).strict(),
     caveats: z.array(z.string().min(1)).min(1),
     instruments: z
       .object({
@@ -98,10 +104,13 @@ export const mefIrpefDettaglioMetadataSchema = z
     schemaVersion: z.literal(1),
     datasetId: z.literal("mef-irpef-dettaglio"),
     period: z.object({ from: z.literal(2017), to: z.literal(2025) }).strict(),
+    periodBasis: z.literal("declaration-year"),
+    taxPeriod: z.object({ from: z.literal(2016), to: z.literal(2024) }).strict(),
     observedAt: isoDate,
     source: z
       .object({
-        owner: z.string().min(1),
+        owner: z.literal("MEF - Dipartimento delle Finanze"),
+        catalogReceipt: z.object({ url: officialUrl("Catalogo non ufficiale"), sha256, bytes: z.number().int().positive(), acquiredAt: isoDate, note: z.string().min(1) }).strict(),
         landingUrl: officialUrl("Landing URL del Dipartimento delle Finanze non ufficiale"),
         // Verificata per dataset sul catalogo, non ereditata dal dataset comunale.
         licenseId: z.literal("CC-BY-3.0-IT"),
@@ -123,7 +132,7 @@ export const mefIrpefDettaglioMetadataSchema = z
     semantics: z
       .object({
         soldi: z.object({ unit: z.string().min(1), nature: z.string().min(1), note: z.string().min(1) }).strict(),
-        periodo: z.object({ referencePeriod: z.literal("2017-2025"), note: z.string().min(1) }).strict(),
+        periodo: z.object({ referencePeriod: z.literal("2016-2024"), note: z.string().min(1) }).strict(),
         provenance: z
           .object({
             holder: z.string().min(1),
@@ -159,6 +168,22 @@ export type MefIrpefDettaglioTable = z.infer<typeof tableSchema>;
 export type MefIrpefDettaglioSchema = z.infer<typeof schemaSchema>;
 export type MefIrpefDettaglioRow = Readonly<{ t: number; k: readonly [string, string]; v: readonly (number | null)[] }>;
 
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value === "boolean" || typeof value === "number" || typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => canonicalJson(item)).join(",")}]`;
+  }
+  if (typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left < right ? -1 : left > right ? 1 : 0)
+      .map(([key, item]) => `${JSON.stringify(key)}:${canonicalJson(item)}`)
+      .join(",")}}`;
+  }
+  throw new Error("Valore non serializzabile nel data artifact MEF IRPEF");
+}
+
 function reconcile(data: MefIrpefDettaglioData): void {
   const coverage = data.coverage;
   if (coverage.observedFiles !== coverage.expectedFiles) {
@@ -193,10 +218,13 @@ function reconcile(data: MefIrpefDettaglioData): void {
 
   // Le righe sono controllate qui, una volta, con un ciclo: struttura, larghezza
   // coerente con lo schema della tabella, e i due conteggi dichiarati.
+  const keys = new Set<string>();
+  const counts = data.tables.map(() => 0);
   let empty = 0;
   let negative = 0;
   for (const raw of data.rows) {
     const row = raw as MefIrpefDettaglioRow;
+    if (!Number.isSafeInteger(row?.t) || row.t < 0) throw new Error("Snapshot MEF IRPEF: indice tabella non valido.");
     const table = data.tables[row?.t];
     if (!table) throw new Error("Snapshot MEF IRPEF: riga senza tabella.");
     if (!Array.isArray(row.k) || row.k.length !== 2 || row.k.some((key) => typeof key !== "string" || key === "")) {
@@ -205,13 +233,18 @@ function reconcile(data: MefIrpefDettaglioData): void {
     if (!Array.isArray(row.v) || row.v.length !== widths.get(table.schemaId)) {
       throw new Error(`Snapshot MEF IRPEF: larghezza di riga incoerente con lo schema in ${table.id}.`);
     }
+    const key = JSON.stringify([row.t, ...row.k]);
+    if (keys.has(key)) throw new Error("Snapshot MEF IRPEF: riga duplicata.");
+    keys.add(key);
+    counts[row.t] += 1;
     for (const value of row.v) {
       if (value === null) empty += 1;
-      else if (!Number.isInteger(value)) {
+      else if (!Number.isSafeInteger(value)) {
         throw new Error(`Snapshot MEF IRPEF: valore non intero in ${table.id}.`);
       } else if (value < 0) negative += 1;
     }
   }
+  if (counts.some((count, index) => count !== data.tables[index].rows)) throw new Error("Snapshot MEF IRPEF: conteggio righe per tabella divergente.");
   if (empty !== coverage.emptyCells) {
     throw new Error("Snapshot MEF IRPEF: conteggio delle celle vuote divergente — vuoto e zero non sono la stessa cosa.");
   }
@@ -239,5 +272,25 @@ export function validateMefIrpefDettaglioBundle(
     throw new Error("Snapshot MEF IRPEF: file dichiarati e tabelle pubblicate non coincidono.");
   }
   reconcile(parsedData);
+  const serialized = canonicalJson(parsedData);
+  const expected = sourceLock.integrity.dataArtifact;
+  if (createHash("sha256").update(serialized).digest("hex") !== expected.sha256
+    || Buffer.byteLength(serialized) !== expected.bytes
+    || canonicalJson(parsedMetadata.integrity.dataArtifact) !== canonicalJson(expected)) {
+    throw new Error("Snapshot MEF IRPEF: hash o dimensione divergenti dal lock.");
+  }
+  const lockHash = createHash("sha256").update(canonicalJson({ ...sourceLock,
+    integrity: { ...sourceLock.integrity, lockSha256: "" } })).digest("hex");
+  if (lockHash !== sourceLock.integrity.lockSha256 || parsedMetadata.integrity.sourceLockSha256 !== lockHash) {
+    throw new Error("Snapshot MEF IRPEF: hash del source lock divergente.");
+  }
+  const files = Object.fromEntries(Object.entries(sourceLock.expected.tables).map(([name, t]) => [name, {url:t.url,bytes:t.bytes,sha256:t.sha256}]));
+  for (const key of ["owner", "landingUrl", "licenseId", "licenseNote", "encoding", "delimiter", "numberNote", "acquisition", "missingFiles", "emptyReleases", "catalogReceipt"] as const) {
+    if (canonicalJson(parsedMetadata.source[key]) !== canonicalJson(sourceLock.source[key])) throw new Error(`Snapshot MEF IRPEF: source.${key} divergente dal lock.`);
+  }
+  if (canonicalJson(parsedMetadata.source.files) !== canonicalJson(files)
+    || canonicalJson(parsedMetadata.availability) !== canonicalJson(parsedData.availability)
+    || canonicalJson(parsedMetadata.instruments) !== canonicalJson(parsedData.instruments)
+    || parsedMetadata.observedAt !== sourceLock.source.acquisition.acquiredAt) throw new Error("Snapshot MEF IRPEF: metadati divergenti dal lock.");
   return { data: parsedData, metadata: parsedMetadata };
 }

@@ -110,7 +110,7 @@
       "label": "Bonus IRPEF",
       "years": "2017-2021"
     },
-    "note": "La famiglia bonus_irpef misura DUE strumenti diversi: il Bonus IRPEF fino al 2020, il Trattamento integrativo dal 2022, e il 2021 li espone entrambi. Non sono concatenabili in una serie unica.",
+    "note": "Gli anni qui indicati sono anni di dichiarazione: 2021 si riferisce all'anno di imposta 2020 e contiene Bonus IRPEF e Trattamento integrativo. Le due misure non sono concatenabili in una serie unica.",
     "trattamento": {
       "label": "Trattamento integrativo",
       "years": "2021-2025"
@@ -120,22 +120,23 @@
     "algorithm": "sha256",
     "canonicalization": "UTF-8 JSON, chiavi ordinate, separatori compatti",
     "dataArtifact": {
-      "bytes": 5440379,
+      "bytes": 5444337,
       "path": "src/data/generated/mef-irpef-dettaglio-2017-2025.data.json",
-      "sha256": "e6d6a4c4ec36655eb3dce4d5b123a46b30401a160f328e32a8907da2c0d7f29e"
+      "sha256": "9284293a0d19d7b92fdd326e918f981e3dd147693786e1831659ef1615ec18f0"
     },
-    "sourceLockSha256": "0ae84a6e84e15e9cd487d2c034168f7ceb20ffb7998585e40f014ff84f24f398"
+    "sourceLockSha256": "7be55cf0d582e5e26c9a9f121f1a33a45d068d3e49a18ba4208d3a4b23007887"
   },
   "observedAt": "2026-09-05",
   "period": {
     "from": 2017,
     "to": 2025
   },
+  "periodBasis": "declaration-year",
   "schemaVersion": 1,
   "semantics": {
     "periodo": {
-      "note": "Anno di imposta dal nome del file dichiarato nel lock. Due file del 2018 sono elencati dal catalogo ma rispondono 404: quegli anni restano assenti e dichiarati. La famiglia bonus cambia strumento misurato nel 2021 e le serie non sono concatenabili.",
-      "referencePeriod": "2017-2025"
+      "note": "Anni di imposta 2016-2024, distinti dagli anni di dichiarazione 2017-2025 usati nei filtri. La corrispondenza e la data di pubblicazione vengono dalle schede del catalogo ufficiale. Due file delle dichiarazioni 2018 sono elencati dal catalogo ma rispondono 404: quegli anni restano assenti e dichiarati. La famiglia bonus espone entrambi gli strumenti nelle dichiarazioni 2021 (anno di imposta 2020); le serie non sono concatenabili.",
+      "referencePeriod": "2016-2024"
     },
     "provenance": {
       "acquisitionDate": "2026-09-05",
@@ -237,6 +238,13 @@
       "acquiredAt": "2026-09-05",
       "checkedAt": "2026-09-05",
       "note": "79 CSV scaricati dagli URL canonici del catalogo open data del Dipartimento delle Finanze."
+    },
+    "catalogReceipt": {
+      "acquiredAt": "2026-09-05",
+      "bytes": 1083183,
+      "note": "Anno di dichiarazione, anno di imposta e data pubblicazione letti dalle schede del catalogo; non inferiti dal nome del CSV.",
+      "sha256": "44e1df25552a76d9f8088460c64d8d661928a6695e9bbd45c0b0286adca7dcad",
+      "url": "https://www1.finanze.gov.it/finanze/analisi_stat/public/index.php?opendata=yes"
     },
     "delimiter": ";",
     "emptyReleases": {
@@ -649,5 +657,9 @@
     },
     "numberNote": "I valori sono interi con il punto come separatore delle migliaia e NESSUN decimale (verificato su tutte le 686426 celle): la conversione e' esatta. Una virgola decimale in un rilascio futuro e' una deriva e deve fermare la build.",
     "owner": "MEF - Dipartimento delle Finanze"
+  },
+  "taxPeriod": {
+    "from": 2016,
+    "to": 2024
   }
 }

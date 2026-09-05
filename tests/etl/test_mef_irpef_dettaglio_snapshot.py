@@ -146,5 +146,22 @@ class MefIrpefDettaglioSnapshotTest(unittest.TestCase):
         self.assertRegex(joined, r"non si sommano")
 
 
+    def test_duplicate_rows_and_invalid_table_indices_fail(self):
+        duplicate = copy.deepcopy(self.data)
+        duplicate["rows"][1] = copy.deepcopy(duplicate["rows"][0])
+        with self.assertRaisesRegex(etl.SnapshotError, "duplicata"):
+            etl.validate_snapshot(duplicate)
+        invalid = copy.deepcopy(self.data)
+        invalid["rows"][0]["t"] = -1
+        with self.assertRaisesRegex(etl.SnapshotError, "indice tabella"):
+            etl.validate_snapshot(invalid)
+
+    def test_declared_and_economic_years_are_distinct(self):
+        self.assertEqual(self.data["periodBasis"], "declaration-year")
+        self.assertEqual(self.data["taxPeriod"], {"from": 2016, "to": 2024})
+        for table in self.data["tables"]:
+            self.assertEqual(table["taxYear"], table["year"] - 1)
+            self.assertEqual(table["publicationDate"], self.spec["expected"]["tables"][table["id"]]["publicationDate"])
+
 if __name__ == "__main__":
     unittest.main()

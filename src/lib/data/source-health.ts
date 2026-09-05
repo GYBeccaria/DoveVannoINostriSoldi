@@ -684,7 +684,7 @@ function snapshotManagedMefIrpefDettaglio(): SourceHealth {
     reachability: "not-probed",
     freshness: freshnessFor("mef-irpef-dettaglio", mefIrpefDettaglioMetadata.observedAt),
     latencyMs: null,
-    detail: `Snapshot ETL attivo · dettaglio IRPEF ${mefIrpefDettaglioData.period.from}-${mefIrpefDettaglioData.period.to} · ${observedFiles} file su nove famiglie, ${observedRows.toLocaleString("it-IT")} righe e ${emptyCells.toLocaleString("it-IT")} celle vuote distinte dagli zeri · ${artifact.bytes.toLocaleString("it-IT")} byte.`,
+    detail: `Snapshot ETL attivo · dettaglio IRPEF dichiarazioni ${mefIrpefDettaglioData.period.from}-${mefIrpefDettaglioData.period.to}, anni di imposta ${mefIrpefDettaglioData.taxPeriod.from}-${mefIrpefDettaglioData.taxPeriod.to} · ${observedFiles} file su nove famiglie, ${observedRows.toLocaleString("it-IT")} righe e ${emptyCells.toLocaleString("it-IT")} celle vuote distinte dagli zeri · ${artifact.bytes.toLocaleString("it-IT")} byte.`,
     recordCount: observedRows,
   };
 }

@@ -434,7 +434,7 @@ test("la proiezione MCP eurostat_cofog rifiuta filtri non dichiarati", async () 
 test("il dataset MCP mef_irpef_dettaglio dichiara fonte, filtri e caveat sulle nature", () => {
   const irpef = datasetCatalog.find((dataset) => dataset.id === "mef_irpef_dettaglio");
   assert.deepEqual(irpef.sourceIds, ["mef-irpef-dettaglio"]);
-  assert.deepEqual(irpef.filters, ["family", "breakdown", "year"]);
+  assert.deepEqual(irpef.filters, ["family", "breakdown", "year", "limit", "offset"]);
   assert.match(irpef.caveat, /non gettito riscosso/i);
   assert.match(irpef.caveat, /due strumenti diversi/);
   assert.match(irpef.caveat, /non è uno zero/);

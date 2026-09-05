@@ -118,3 +118,47 @@ test("il contratto boccia una provenienza non ufficiale", () => {
   broken.source.landingUrl = "https://www1.finanze.gov.it.example.org/x";
   assert.throws(() => validateMefIrpefDettaglioBundle(mefIrpefDettaglioData, broken));
 });
+
+test("declaration years and tax years remain distinct and traceable", () => {
+  const result = queryMefIrpefDettaglio({ family: "bonus_irpef", breakdown: "sesso", year: 2021 });
+  assert.equal(result.periodBasis, "declaration-year");
+  assert.deepEqual(result.taxPeriod, { from: 2016, to: 2024 });
+  assert.equal(result.tables[0].table.taxYear, 2020);
+  assert.equal(result.tables[0].table.publicationDate, "2022-04-13");
+  assert.match(result.tables[0].source.sha256, /^[a-f0-9]{64}$/);
+});
+
+test("pagination covers a filtered table exactly once and enforces bounds", () => {
+  const query = { family: "tipo_reddito", breakdown: "regione", year: 2025, limit: 100 };
+  const keys = new Set();
+  let offset = 0;
+  let total;
+  do {
+    const result = queryMefIrpefDettaglio({ ...query, offset });
+    total = result.pagination.totalRows;
+    assert.ok(result.pagination.returnedRows <= 100);
+    for (const row of result.tables[0].rows) {
+      const key = JSON.stringify(row.keys);
+      assert.ok(!keys.has(key));
+      keys.add(key);
+    }
+    offset = result.pagination.nextOffset;
+  } while (offset !== null);
+  assert.equal(keys.size, total);
+  for (const invalid of [{limit:101}, {limit:0}, {limit:1.5}, {offset:-1}, {offset:100001}]) {
+    assert.throws(() => queryMefIrpefDettaglio({...query,...invalid}), /Paginazione/);
+  }
+});
+
+test("contract rejects duplicate rows, changed positive cells and altered file provenance", () => {
+  const duplicate = structuredClone(mefIrpefDettaglioData);
+  duplicate.rows[1] = structuredClone(duplicate.rows[0]);
+  assert.throws(() => validateMefIrpefDettaglioBundle(duplicate, mefIrpefDettaglioMetadata), /duplicata/);
+  const changed = structuredClone(mefIrpefDettaglioData);
+  const row = changed.rows.find(row => row.v.some(value => value > 0));
+  row.v[row.v.findIndex(value => value > 0)] += 1;
+  assert.throws(() => validateMefIrpefDettaglioBundle(changed, mefIrpefDettaglioMetadata), /hash/);
+  const metadata = structuredClone(mefIrpefDettaglioMetadata);
+  Object.values(metadata.source.files)[0].sha256 = "0".repeat(64);
+  assert.throws(() => validateMefIrpefDettaglioBundle(mefIrpefDettaglioData, metadata), /metadati/);
+});
