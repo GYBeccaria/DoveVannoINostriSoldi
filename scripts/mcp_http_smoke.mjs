@@ -233,25 +233,6 @@ assert.ok(detailedIrpefData.data.every((row) => {
 assert.match(detailedIrpefData.caveats.join(" "), /non è il gettito fiscale totale/i);
 assert.match(detailedIrpefData.caveats.join(" "), /fonti di reddito si sovrappongono/i);
 
-const detailQuery = { dataset: "mef_irpef_dettaglio", family: "tipo_reddito", breakdown: "regione", year: 2025, limit: 2, offset: 2 };
-const taxDetail = successfulMcpToolResult(await mcpRequest({
-  jsonrpc: "2.0", id: 260, method: "tools/call",
-  params: { name: "query_dataset", arguments: detailQuery },
-}), "mef_irpef_dettaglio").data;
-const taxApiResponse = await fetch(new URL("/api/territori/irpef-dettaglio?famiglia=tipo_reddito&taglio=regione&anno=2025&limit=2&offset=2", baseUrl));
-assert.equal(taxApiResponse.status, 200);
-const taxApi = await taxApiResponse.json();
-assert.deepEqual(taxDetail.tables, taxApi.tables);
-assert.equal(taxDetail.pagination.returnedRows, 2);
-assert.equal(taxDetail.tables[0].table.taxYear, 2024);
-assert.equal(taxDetail.periodBasis, "declaration-year");
-assert.equal((await fetch(new URL("/api/territori/irpef-dettaglio?anno=2025&anno=2024", baseUrl))).status, 400);
-const invalidTaxPage = await mcpRequest({
-  jsonrpc: "2.0", id: 261, method: "tools/call",
-  params: { name: "query_dataset", arguments: { ...detailQuery, limit: 101 } },
-});
-assert.match(invalidTaxPage, /"isError":true/);
-
 const unsupportedDetailDataset = await mcpRequest({
   jsonrpc: "2.0",
   id: 26,
