@@ -368,24 +368,33 @@
       "id": "openbdap-budget-law",
       "owner": "OpenBDAP budget-law mission series",
       "files": [
-        "src/data/generated/openbdap-budget-law-missions.json"
+        "src/data/generated/openbdap-budget-law-missions.json",
+        "scripts/etl/specs/openbdap-budget-law-missions.source.json",
+        "docs/SOURCE_SNAPSHOT_INVENTORY.md"
       ],
-      "verificationMode": "source-lock",
+      "verificationMode": "online-refresh",
       "offlineCheck": {
         "command": "node --experimental-strip-types --import ./tests/helpers/register-ts-alias.mjs scripts/etl/bdap_budget_law_snapshot.mjs --check",
         "coveredBy": "standalone"
       },
       "reconciliationTests": [],
       "nodeTests": [
-        "tests/bdap-legge-bilancio.test.mjs"
+        "tests/bdap-legge-bilancio.test.mjs",
+        "tests/bdap-budget-law-refresh.test.mjs"
       ],
       "generator": {
-        "command": "node --experimental-strip-types --import ./tests/helpers/register-ts-alias.mjs scripts/etl/bdap_budget_law_snapshot.mjs --package-json ... --csv ... --observed-at ...",
+        "command": "node --experimental-strip-types --import ./tests/helpers/register-ts-alias.mjs scripts/etl/bdap_budget_law_refresh.mjs",
         "requiresNetworkInput": true
       },
       "sourceSpec": "scripts/etl/specs/openbdap-budget-law-missions.source.json",
-      "refreshWorkflow": null,
-      "trustModel": "Committed aggregate generated from the official catalog response and CSV, both identified by SHA-256. Runtime prefers live OpenBDAP data and uses this validated snapshot only when the source is unavailable."
+      "refreshWorkflow": ".github/workflows/budget-law-refresh.yml",
+      "trustModel": "Scheduled workflow creates a bot-authored managed PR candidate containing the snapshot and its exact reviewed source lock. Official bytes, identity, licence, complete year/mission coverage and reconciliation are validated before publication. No direct main updates; schema or taxonomy drift requires manual review.",
+      "publication": {
+        "branch": "automation/data/budget-law",
+        "commitTitle": "chore(data): refresh Legge di Bilancio snapshot",
+        "prTitle": "data: refresh Legge di Bilancio snapshot",
+        "upstreamUrl": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi/api/3/action/package_search?q=LBF_SPE_CRU_AMPMA_001&rows=20"
+      }
     },
     {
       "id": "opencivitas-2022",
@@ -925,6 +934,32 @@
       "sourceSpec": "scripts/etl/specs/istat-cofog-1995-2023.source.json",
       "refreshWorkflow": null,
       "trustModel": "Source-lock: la risposta SDMX-CSV ufficiale del dataflow 93_1227_DF_DCCN_TNA1_4 è acquisita con chiave completamente specificata (misura P3_D_W0_S13, prezzi correnti, edizione 2025M12) e vincolata per URL, byte e SHA-256; --check valida il bundle committato senza rete. Copertura piena, assenza di duplicati e undici partizioni dichiarate falliscono chiuse oltre la tolleranza di arrotondamento dichiarata. Nessuna licenza inferita: la risposta SDMX non ne espone una riusabile verificata."
+    },
+    {
+      "id": "istat-poverta-assoluta-2014-2024",
+      "owner": "ISTAT povertà assoluta 2014-2024 (serie corrente post-revisione)",
+      "files": [
+        "src/data/generated/istat-poverta-assoluta-2014-2024.data.json",
+        "src/data/generated/istat-poverta-assoluta-2014-2024.meta.json"
+      ],
+      "verificationMode": "source-lock",
+      "offlineCheck": {
+        "command": "python3 scripts/etl/istat_poverta_snapshot.py --check",
+        "coveredBy": "standalone"
+      },
+      "reconciliationTests": [
+        "tests/etl/test_istat_poverta_snapshot.py"
+      ],
+      "nodeTests": [
+        "tests/istat-poverta.test.mjs"
+      ],
+      "generator": {
+        "command": "python3 scripts/etl/istat_poverta_snapshot.py --input-dir <cartella con la risposta SDMX-CSV> --write",
+        "requiresNetworkInput": true
+      },
+      "sourceSpec": "scripts/etl/specs/istat-poverta-assoluta-2014-2024.source.json",
+      "refreshWorkflow": null,
+      "trustModel": "Source-lock: la risposta SDMX-CSV ufficiale del dataflow 34_727_DF_DCCV_POVERTA_1 è acquisita con chiave completamente specificata (nove delle undici dimensioni fissate letteralmente, REF_AREA e DATA_TYPE enumerate) e vincolata per URL, byte e SHA-256; --check valida il bundle committato senza rete. Copertura piena, assenza di duplicati, partizioni territoriali sui soli conteggi entro tolleranza empirica dichiarata e composizioni percentuali che chiudono a 100 falliscono chiuse. Il flag CL_FLAG «0» non è uno zero osservato: una cella flaggata resta null. Vale anche un'asserzione NEGATIVA: le incidenze non devono chiudere per somma fra territori, perché un tasso non si comporta così. Nessuna licenza inferita: la risposta SDMX non ne espone alcuna."
     },
     {
       "id": "istat-epea-2016-2022",

@@ -8,6 +8,7 @@ import { inpsNaspiData } from "@/lib/inps-naspi-snapshot";
 import { mefIrpefDettaglioData } from "@/lib/mef-irpef-dettaglio-snapshot";
 import { istatCofogData } from "@/lib/istat-cofog-snapshot";
 import { istatEpeaMetadata } from "@/lib/istat-epea-snapshot";
+import { istatPovertaData } from "@/lib/istat-poverta-snapshot";
 import { istatPensionsSnapshot } from "@/lib/istat-pensions-snapshot";
 import { mefParticipationsSnapshot } from "@/lib/mef-participations-snapshot";
 import { openCivitasSnapshot } from "@/lib/opencivitas-snapshot";
@@ -64,6 +65,10 @@ const exhaustiveLatestDataBySlug = {
   "istat-epea": {
     kind: "period",
     label: `${istatEpeaMetadata.referencePeriod.from}-${istatEpeaMetadata.referencePeriod.to}`,
+  },
+  "istat-poverta": {
+    kind: "period",
+    label: `${istatPovertaData.period.from}-${istatPovertaData.period.to}`,
   },
   "inps-naspi": {
     kind: "period",

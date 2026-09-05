@@ -29,6 +29,7 @@ import { inpsNaspiData, inpsNaspiMetadata } from "@/lib/inps-naspi-snapshot";
 import { mefIrpefDettaglioData, mefIrpefDettaglioMetadata } from "@/lib/mef-irpef-dettaglio-snapshot";
 import { istatCofogData, istatCofogMetadata } from "@/lib/istat-cofog-snapshot";
 import { istatEpeaData, istatEpeaMetadata } from "@/lib/istat-epea-snapshot";
+import { istatPovertaData, istatPovertaMetadata } from "@/lib/istat-poverta-snapshot";
 import { MEF_IRPEF_SOURCE } from "@/lib/data/mef-irpef-source";
 import { PNRR_CHILDCARE_SOURCE } from "@/lib/data/pnrr-childcare-source";
 import { getSsnCceSourceHealth, type SsnCceSourceHealth } from "@/lib/ssn-cce-snapshot";
@@ -688,6 +689,19 @@ function snapshotManagedMefIrpefDettaglio(): SourceHealth {
   };
 }
 
+function snapshotManagedIstatPoverta(): SourceHealth {
+  const { source, period, observedAt } = istatPovertaMetadata;
+  const asset = Object.values(source.assets)[0];
+  return {
+    ...baseHealth("istat-poverta"),
+    reachability: "not-probed",
+    freshness: freshnessFor("istat-poverta", observedAt),
+    latencyMs: null,
+    detail: `Snapshot ETL attivo · povertà assoluta ${period.from}-${period.to} (serie corrente post-revisione, ${source.dataflowId}) · ${istatPovertaData.observations.length.toLocaleString("it-IT")} osservazioni su ${istatPovertaData.territories.length} territori e ${istatPovertaData.measures.length} misure · ${asset.bytes.toLocaleString("it-IT")} byte CSV pinnato. Non è spesa pubblica.`,
+    recordCount: istatPovertaData.observations.length,
+  };
+}
+
 function snapshotManagedGovernmentScorecard(
   sourceId: "ameco" | "governi-presidenza",
 ): SourceHealth {
@@ -731,6 +745,7 @@ export function getSnapshotManagedSourceHealth(): SourceHealth[] {
     snapshotManagedEurostatCofog(),
     snapshotManagedIstatCofog(),
     snapshotManagedIstatEpea(),
+    snapshotManagedIstatPoverta(),
     snapshotManagedInpsNaspi(),
     snapshotManagedMefIrpefDettaglio(),
   ];
@@ -767,6 +782,7 @@ export const SOURCE_HEALTH_ADAPTERS = Object.freeze({
   "eurostat-cofog": snapshotManagedEurostatCofog,
   "istat-cofog": snapshotManagedIstatCofog,
   "istat-epea": snapshotManagedIstatEpea,
+  "istat-poverta": snapshotManagedIstatPoverta,
   "inps-naspi": snapshotManagedInpsNaspi,
   "mef-irpef-dettaglio": snapshotManagedMefIrpefDettaglio,
 } satisfies Record<SourceId, SourceHealthAdapter>);
